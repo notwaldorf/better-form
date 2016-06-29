@@ -153,7 +153,24 @@ event and do your own custom submission:
     },
 
     validate: function() {
-      return this._checkFormValidity(this._getValidatableElements());
+      if (this._form.getAttribute('novalidate') === '')
+        return true;
+
+      // Start by making the form check the native elements it knows about.
+      var valid = this._form.checkValidity();
+
+      var elements = this._getValidatableElements();
+
+      // Go through all the elements, and validate the custom ones.
+      for (var el, i = 0; el = elements[i], i < elements.length; i++) {
+        // This is weird to appease the compiler. We assume the custom element
+        // has a validate() method, otherwise we can't check it.
+        var validatable = /** @type {{validate: (function() : boolean)}} */ (el);
+        if (validatable.validate) {
+          valid = !!validatable.validate() && valid;
+        }
+      }
+      return valid;
     },
 
     submit: function(event) {
@@ -280,26 +297,6 @@ event and do your own custom submission:
       }
 
       return submittable;
-    },
-
-    _checkFormValidity: function(elements) {
-      if (this._form.getAttribute('novalidate') === '')
-        return true;
-
-      // Start by making the form check the native elements it knows about.
-      var valid = this._form.checkValidity();
-
-      // Go through all the elements, and validate the custom ones.
-      for (var el, i = 0; el = elements[i], i < elements.length; i++) {
-        // This is weird to appease the compiler. We assume the custom element
-        // has a validate() method, otherwise we can't check it.
-        var validatable = /** @type {{validate: (function() : boolean)}} */ (el);
-        if (validatable.validate) {
-          valid = !!validatable.validate() && valid;
-        }
-      }
-
-      return valid;
     },
 
     _serializeElementValues: function(element) {
