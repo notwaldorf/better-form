@@ -251,7 +251,7 @@ event and do your own custom submission:
     },
 
     _getValidatableElements: function() {
-      var nodes = Polymer.dom(this).queryDistributedElements('*');
+      var nodes = Polymer.dom(this._form).querySelectorAll('*');
       var validatable = [];
 
       for (var i = 0; i < nodes.length; i++) {
@@ -275,7 +275,7 @@ event and do your own custom submission:
     },
 
     _getSubmittableElements: function() {
-      var nodes = Polymer.dom(this).queryDistributedElements('*');
+      var nodes = Polymer.dom(this._form).querySelectorAll('*');
       var submittable = [];
 
       for (var i = 0; i < nodes.length; i++) {
