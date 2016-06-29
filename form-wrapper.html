@@ -12,7 +12,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../iron-ajax/iron-ajax.html">
 
 <!--
-`<better-form>` is a wrapper around the HTML `<form>` element, that can
+`<form-wrapper>` is a wrapper around the HTML `<form>` element, that can
 validate and submit both custom and native HTML elements.
 
 It has two modes: if `redirect` is true, then after the form submission you
@@ -21,11 +21,11 @@ use an `iron-ajax` element to submit the form contents to the server.
 
   Example:
 
-    <better-form method="get" action="/form/handler">
+    <form-wrapper method="get" action="/form/handler">
       <input type="text" name="name" value="Batman">
       <input type="checkbox" name="donuts" checked> I like donuts<br>
       <paper-checkbox name="cheese" value="yes" checked></paper-checkbox>
-    </better-form>
+    </form-wrapper>
 
 By default, a native `<button>` element will submit this form. However, if you
 want to submit it from a custom element's click handler, you need to explicitly
@@ -40,33 +40,33 @@ call the form's `submit` method.
     }
 
 If you are not using the `redirect` mode, then you also have the option of
-customizing the request sent to the server. To do so, you can listen to the `better-form-presubmit`
+customizing the request sent to the server. To do so, you can listen to the `form-wrapper-presubmit`
 event, and modify the form's[`iron-ajax`](https://elements.polymer-project.org/elements/iron-ajax)
 object. However, If you want to not use `iron-ajax` at all, you can cancel the
 event and do your own custom submission:
 
   Example of modifying the request, but still using the build-in form submission:
 
-    form.addEventListener('better-form-presubmit', function() {
+    form.addEventListener('form-wrapper-presubmit', function() {
       this.request.method = 'put';
       this.request.params['extraParam'] = 'someValue';
     });
 
   Example of bypassing the build-in form submission:
 
-    form.addEventListener('better-form-presubmit', function(event) {
+    form.addEventListener('form-wrapper-presubmit', function(event) {
       event.preventDefault();
       var firebase = new Firebase(form.getAttribute('action'));
       firebase.set(form.serialize());
     });
 
 @group Iron Elements
-@element better-form
+@element form-wrapper
 @hero hero.svg
 @demo demo/index.html
 -->
 
-<dom-module id="better-form">
+<dom-module id="form-wrapper">
   <style>
     :host {
       display: block;
@@ -74,15 +74,7 @@ event and do your own custom submission:
   </style>
   <template>
     <!-- This form is used to collect the elements that should be submitted -->
-    <form id="form"
-          action$="[[action]]"
-          autocomplete$="[[autocomplete]]"
-          method$="[[method]]"
-          name$="[[name]]"
-          novalidate$="[[novalidate]]"
-          target$="[[target]]">
-      <content></content>
-    </form>
+    <content id="content"></content>
 
     <!-- This form is used for submission -->
     <form id="helper" action$="[[action]]" method$="[[method]]" enctype$="[[enctype]]"></form>
@@ -90,7 +82,7 @@ event and do your own custom submission:
 
   <script>
   Polymer({
-    is: 'better-form',
+    is: 'form-wrapper',
 
     properties: {
       /*
@@ -101,75 +93,56 @@ event and do your own custom submission:
       allowRedirect: {
         type: Boolean,
         value: false
-      },
-
-      /*
-       * Set this to true if you want the form to perform no validation.
-       * For more information on this attribute, see https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form
-       */
-      novalidate: {
-        type: Boolean,
-        value: false
-      },
-
-      /*
-       * The form processing agent. User agent behavior for a value other than an HTTP URI is undefined.
-       * For more information on this attribute, see https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form
-       */
-      action: {
-        type: String
-      },
-
-      /*
-       * This attribute specifies which HTTP method will be used to submit the
-       * form data set. Possible (case-insensitive) values are "get" (the default) and "post".
-       * For more information on this attribute, see https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form
-       */
-      method: {
-        type: String,
-        value: 'GET'
-      },
-
-      /*
-       * This attribute specifies the content type used to submit the form to
-       * the server (when the value of method is "post"). The default value is
-       * "application/x-www-form-urlencoded". The value "multipart/form-data"
-       * should be used in combination with the INPUT element, type="file".
-       * For more information on this attribute, see https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form
-       */
-      enctype: {
-        type: String
       }
     },
 
     /**
      * Fired after the form is submitted.
      *
-     * @event better-form-submit
+     * @event form-wrapper-submit
      */
 
     /**
      * Fired before the form is submitted.
      *
-     * @event better-form-presubmit
+     * @event form-wrapper-presubmit
      */
 
     /**
      * Fired after the form is submitted and a response is received. An
      * IronRequestElement is included as the event.detail object.
      *
-     * @event better-form-response
+     * @event form-wrapper-response
     */
 
     /**
      * Fired after the form is submitted and an error is received. An
      * IronRequestElement is included as the event.detail object.
      *
-     * @event better-form-error
+     * @event form-wrapper-error
     */
     attached: function() {
-      this.$.form.addEventListener('submit', this.submit.bind(this));
-      this.$.form.addEventListener('reset', this.reset.bind(this));
+      this._nodeObserver = Polymer.dom(this.$.content).observeNodes(
+        function(mutations) {
+          for (var i = 0; i < mutations.addedNodes.length; i++) {
+            if (mutations.addedNodes[i].tagName === 'FORM') {
+              this._form = mutations.addedNodes[i];
+              this.init();
+            }
+          }
+        }.bind(this));
+    },
+
+    detached: function() {
+      if (this._nodeObserver) {
+        Polymer.dom(this.$.content).unobserveNodes(this._nodeObserver);
+        this._nodeObserver = null;
+      }
+    },
+
+    init: function() {
+      this._form.addEventListener('submit', this.submit.bind(this));
+      this._form.addEventListener('reset', this.reset.bind(this));
 
       if (!this.allowRedirect) {
         this.ajax = document.createElement('iron-ajax');
@@ -179,6 +152,7 @@ event and do your own custom submission:
     },
 
     submit: function(event) {
+      debugger
       // We are not using this form for submission, so always cancel its event.
       if (event)
         event.preventDefault();
@@ -214,7 +188,7 @@ event and do your own custom submission:
       // If we want a redirect, submit the form natively.
       if (this.allowRedirect) {
         this.$.helper.submit();
-        this.fire('better-form-submit');
+        this.fire('form-wrapper-submit');
       } else {
         this._makeAjaxRequest(json);
       }
@@ -224,34 +198,34 @@ event and do your own custom submission:
     },
 
     _handleFormResponse: function (event) {
-      this.fire('better-form-response', event.detail);
+      this.fire('form-wrapper-response', event.detail);
     },
 
     _handleFormError: function (event) {
-      this.fire('better-form-error', event.detail);
+      this.fire('form-wrapper-error', event.detail);
     },
 
     _makeAjaxRequest: function(json) {
       // Native forms can also index elements magically by their name (can't make
       // this up if I tried) so we need to get the correct attributes, not the
       // elements with those names.
-      this.ajax.url = this.getAttribute('action');
-      this.ajax.method = this.getAttribute('method');
-      this.ajax.contentType = this.contentType;
+      this.ajax.url = this._form.getAttribute('action');
+      this.ajax.method = this._form.getAttribute('method');
+      this.ajax.contentType = this._form.contentType;
       //this.ajax.withCredentials = this.withCredentials;
       //this.ajax.headers = this.headers;
 
-      if (this.method.toUpperCase() === 'POST') {
+      if (this._form.method.toUpperCase() === 'POST') {
         this.ajax.body = json;
       } else {
         this.ajax.params = json;
       }
 
       // Allow for a presubmit hook
-      var event = this.fire('better-form-presubmit', {}, {cancelable: true});
+      var event = this.fire('form-wrapper-presubmit', {}, {cancelable: true});
       if(!event.defaultPrevented) {
         this.ajax.generateRequest();
-        this.fire('better-form-submit', json);
+        this.fire('form-wrapper-submit', json);
       }
     },
 
@@ -281,11 +255,11 @@ event and do your own custom submission:
     },
 
     _checkFormValidity: function(elements) {
-      if (this.novalidate)
+      if (this._form.novalidate)
         return true;
 
       // Start by making the form check the native elements it knows about.
-      var valid = this.$.form.checkValidity();
+      var valid = this._form.checkValidity();
 
       // Go through all the elements, and validate the custom ones.
       for (var el, i = 0; el = elements[i], i < elements.length; i++) {

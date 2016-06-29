@@ -10,7 +10,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 -->
 <html>
 <head>
-  <title>better-form demo</title>
+  <title>form-wrapper demo</title>
 
   <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
   <meta name="mobile-web-app-capable" content="yes">
@@ -24,13 +24,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   <link rel="import" href="../../paper-dropdown-menu/paper-dropdown-menu.html">
   <link rel="import" href="../../paper-menu/paper-menu.html">
   <link rel="import" href="../../paper-item/paper-item.html">
-  <link rel="import" href="../better-form.html">
+  <link rel="import" href="../form-wrapper.html">
 </head>
 <style>
   .wide {
     width: 474px;
   }
-  better-form {
+  form-wrapper {
     background: white;
     border: 1px solid grey;
   }
@@ -39,62 +39,72 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   <div class="horizontal-section-container">
     <div>
       <h1>No redirect</h1>
-      <better-form method="get" action="http://localhost:3000/foo">
-        <input type="text" name="firstname" value="Mickey">
-        <input type="text" name="lastname" value="Mouse">
-        <br>
-        <input type="checkbox" name="donuts" checked> I like donuts<br>
-        <paper-checkbox name="food" value="pizza" checked>pizza</paper-checkbox>
-        <paper-checkbox name="food" value="cheese">cheese</paper-checkbox>
-        <br><br>
-        <input type="submit" value="Submit">
-        <input type="reset" value="Reset">
-      </better-form>
+      <form-wrapper>
+        <form action="http://localhost:3000/foo" method="get">
+          <input type="text" name="firstname" value="Mickey">
+          <input type="text" name="lastname" value="Mouse">
+          <br>
+          <input type="checkbox" name="donuts" checked> I like donuts<br>
+          <paper-checkbox name="food" value="pizza" checked>pizza</paper-checkbox>
+          <paper-checkbox name="food" value="cheese">cheese</paper-checkbox>
+          <br><br>
+          <input type="submit" value="Submit">
+          <input type="reset" value="Reset">
+        </form>
+      </form-wrapper>
 
       <h1>Yes redirect</h1>
-      <better-form method="get" action="http://localhost:3000/foo" allow-redirect>
-        <input type="text" name="firstname" value="Mickey">
-        <input type="text" name="lastname" value="Mouse">
-        <br>
-        <input type="checkbox" name="donuts" checked> I like donuts<br>
-        <paper-checkbox name="food" value="pizza" checked>foo</paper-checkbox>
-        <br><br>
+      <form-wrapper allow-redirect>
+        <form action="http://localhost:3000/foo" method="get">
+          <input type="text" name="firstname" value="Mickey">
+          <input type="text" name="lastname" value="Mouse">
+          <br>
+          <input type="checkbox" name="donuts" checked> I like donuts<br>
+          <paper-checkbox name="food" value="pizza" checked>foo</paper-checkbox>
+          <br><br>
 
-        <input type="reset" name="reset1" value="reset"></input>
-        <input type="submit" name="submit1" value="submit"></input>
-        <button name="button1" value="button">text</button>
+          <input type="reset" name="reset1" value="reset"></input>
+          <input type="submit" name="submit1" value="submit"></input>
+          <button name="button1" value="button">text</button>
 
-        <input type="submit" value="Submit">
-      </better-form>
+          <input type="submit" value="Submit">
+        </form>
+      </form-wrapper>
 
       <h1>no validate</h1>
-      <better-form method="get" action="/" novalidate>
-        <input name="name" label="Name" required></paper-input>
-        <paper-checkbox name="cheese" required>Cheese</paper-checkbox>
-        <br>
-        <input type="submit" value="Submit">
-      </better-form>
-
-      <h4> complicated form </h4>
-      <better-form better-form method="get" action="/">
-        <p>
+      <form-wrapper>
+        <form method="get" action="/" novalidate>
           <input name="name" label="Name" required></paper-input>
           <paper-checkbox name="cheese" required>Cheese</paper-checkbox>
-        </p>
+          <br>
+          <input type="submit" value="Submit">
+        </form>
+      </form-wrapper>
 
-        <input type="submit" value="Submit">
-        <!--
-        <paper-button raised
-            onclick="submitHandler(event)">Submit</paper-button>
-        <paper-button raised
-            onclick="resetHandler(event)">Reset</paper-button> -->
-      </better-form>
+      <h4> complicated form </h4>
+      <form-wrapper>
+        <form method="get" action="/">
+          <p>
+            <input name="name" label="Name" required></paper-input>
+            <paper-checkbox name="cheese" required>Cheese</paper-checkbox>
+          </p>
+
+          <input type="submit" value="Submit">
+          <!--
+          <paper-button raised
+              onclick="submitHandler(event)">Submit</paper-button>
+          <paper-button raised
+              onclick="resetHandler(event)">Reset</paper-button> -->
+        </form>
+      </form-wrapper>
 
       <h4> send a file </h4>
-      <better-form action="http://localhost:3000/foo" method="post" enctype="multipart/form-data">
-        <input type="file" name="fileToUpload" id="fileToUpload">
-        <input type="submit" value="Submit">
-      </better-form>
+      <form-wrapper>
+        <form action="http://localhost:3000/foo" method="post" enctype="multipart/form-data">
+          <input type="file" name="fileToUpload" id="fileToUpload">
+          <input type="submit" value="Submit">
+        </form>
+      </form-wrapper>
       </div>
     </div>
   </div>

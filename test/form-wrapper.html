@@ -10,13 +10,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 -->
 <html>
 <head>
-  <title>better-form</title>
+  <title>form-wrapper</title>
 
   <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
   <script src="../../web-component-tester/browser.js"></script>
 
   <link rel="import" href="../../polymer/polymer.html">
-  <link rel="import" href="../better-form.html">
+  <link rel="import" href="../form-wrapper.html">
   <link rel="import" href="../../paper-checkbox/paper-checkbox.html">
   <link rel="import" href="../../paper-input/paper-input.html">
   <link rel="import" href="../../paper-button/paper-button.html">
@@ -26,26 +26,26 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   <test-fixture id="serialization">
     <template>
       <div>
-        <better-form id="native-checkboxes" action="/get" method="get">
+        <form-wrapper id="native-checkboxes" action="/get" method="get">
           <input type="checkbox" name="check1" checked> <!-- default value is "on" -->
           <input type="checkbox" name="check1" value="1">
           <input type="checkbox" name="check1" value="2" checked>
           <input type="checkbox" name="check2" value="3" checked>
           <input type="checkbox" name="check3" value="4">
-        </better-form>
-        <better-form id="native-radios" action="/get" method="get">
+        </form-wrapper>
+        <form-wrapper id="native-radios" action="/get" method="get">
           <input type="radio" name="radio1" checked> <!-- default value is "on" -->
           <input type="radio" name="radio1" value="1">
           <input type="radio" name="radio2" value="2" checked>
           <input type="radio" name="radio2" value="3" checked> <!-- it's a radio group -->
           <input type="radio" name="radio3" value="4">
-        </better-form>
-        <better-form id="native-buttons" action="/get" method="get">
+        </form-wrapper>
+        <form-wrapper id="native-buttons" action="/get" method="get">
           <input type="reset" name="reset1" value="reset"></input>
           <input type="submit" name="submit1" value="submit"></input>
           <button name="button1" value="button">text</button>
-        </better-form>
-        <better-form id="native-selects" action="/get" method="get">
+        </form-wrapper>
+        <form-wrapper id="native-selects" action="/get" method="get">
           <select name="select1" multiple>
             <option value="1" selected>A</option>
             <option value="2" selected>B</option>
@@ -55,30 +55,30 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             <option value="1" selected>A</option>
             <option value="2">B</option>
           </select>
-        </better-form>
-        <better-form id="native-inputs" action="/get" method="get">
+        </form-wrapper>
+        <form-wrapper id="native-inputs" action="/get" method="get">
           <input type="text" name="input1">
           <input type="text" name="input1" value="foo">
           <input type="text" name="input1" value="zag">
           <input type="text" name="input2" value="bar">
           <input type="password" name="pass1" value="pass">
           <input type="number" name="number1" value="35">
-        </better-form>
-        <better-form id="custom-checkboxes" action="/get" method="get">
+        </form-wrapper>
+        <form-wrapper id="custom-checkboxes" action="/get" method="get">
           <paper-checkbox name="check1" checked></paper-checkbox> <!-- default value is "on" -->
           <paper-checkbox name="check1" value="1"></paper-checkbox>
           <paper-checkbox name="check1" value="2" checked></paper-checkbox>
           <paper-checkbox name="check2" value="3" checked></paper-checkbox>
           <paper-checkbox name="check3" value="4"></paper-checkbox>
-        </better-form>
-        <better-form id="custom-inputs" action="/get" method="get">
+        </form-wrapper>
+        <form-wrapper id="custom-inputs" action="/get" method="get">
           <paper-input name="input1"></paper-input>
           <paper-input name="input1" value="foo"></paper-input>
           <paper-input name="input1" value="zag"></paper-input>
           <paper-input name="input2" value="bar"></paper-input>
           <paper-input type="password" name="pass1" value="pass"></paper-input>
           <paper-input type="number" name="number1" value="35"></paper-input>
-        </better-form>
+        </form-wrapper>
       </div>
     </template>
   </test-fixture>
@@ -110,7 +110,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     test('serializes native checkboxes', function(done) {
       var form = f.querySelector('#native-checkboxes');
 
-      form.addEventListener('better-form-response', function(event) {
+      form.addEventListener('form-wrapper-response', function(event) {
         expect(event.detail.url).to.equal('/get?check1=on&check1=2&check2=3');
         expect(event.detail.response.success).to.be.equal(true);
         done();
@@ -123,7 +123,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     test('serializes native radio buttons', function(done) {
       var form = f.querySelector('#native-radios');
 
-      form.addEventListener('better-form-response', function(event) {
+      form.addEventListener('form-wrapper-response', function(event) {
         expect(event.detail.url).to.equal('/get?radio1=on&radio2=3');
         expect(event.detail.response.success).to.be.equal(true);
         done();
@@ -136,7 +136,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     test('serializes native buttons', function(done) {
       var form = f.querySelector('#native-buttons');
 
-      form.addEventListener('better-form-response', function(event) {
+      form.addEventListener('form-wrapper-response', function(event) {
         expect(event.detail.url).to.equal('/get');
         expect(event.detail.response.success).to.be.equal(true);
         done();
@@ -149,7 +149,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     test('serializes native selects', function(done) {
       var form = f.querySelector('#native-selects');
 
-      form.addEventListener('better-form-response', function(event) {
+      form.addEventListener('form-wrapper-response', function(event) {
         expect(event.detail.url).to.equal('/get?select1=1&select1=2&select2=1');
         expect(event.detail.response.success).to.be.equal(true);
         done();
@@ -162,7 +162,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     test('serializes native inputs', function(done) {
       var form = f.querySelector('#native-inputs');
 
-      form.addEventListener('better-form-response', function(event) {
+      form.addEventListener('form-wrapper-response', function(event) {
         // TODO(noms): figure out if we should submit empty text.
         expect(event.detail.url).to.equal('/get?input1=foo&input1=zag&input2=bar&pass1=pass&number1=35');
         expect(event.detail.response.success).to.be.equal(true);
@@ -176,7 +176,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     test('serializes custom checkboxes', function(done) {
       var form = f.querySelector('#custom-checkboxes');
 
-      form.addEventListener('better-form-response', function(event) {
+      form.addEventListener('form-wrapper-response', function(event) {
         expect(event.detail.url).to.equal('/get?check1=on&check1=2&check2=3');
         expect(event.detail.response.success).to.be.equal(true);
         done();
@@ -189,7 +189,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     test('serializes custom inputs', function(done) {
       var form = f.querySelector('#custom-inputs');
 
-      form.addEventListener('better-form-response', function(event) {
+      form.addEventListener('form-wrapper-response', function(event) {
         // TODO(noms): figure out if we should submit empty text.
         expect(event.detail.url).to.equal('/get?input1=foo&input1=zag&input2=bar&pass1=pass&number1=35');
         expect(event.detail.response.success).to.be.equal(true);
