@@ -1,0 +1,127 @@
+<!doctype html>
+<!--
+@license
+Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+<html>
+<head>
+  <title>better-form demo</title>
+
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+
+  <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+  <link rel="import" href="../../paper-input/paper-input.html">
+  <link rel="import" href="../../paper-button/paper-button.html">
+  <link rel="import" href="../../paper-styles/demo-pages.html">
+  <link rel="import" href="../../paper-checkbox/paper-checkbox.html">
+  <link rel="import" href="../../paper-dropdown-menu/paper-dropdown-menu.html">
+  <link rel="import" href="../../paper-menu/paper-menu.html">
+  <link rel="import" href="../../paper-item/paper-item.html">
+  <link rel="import" href="../better-form.html">
+</head>
+<style>
+  .wide {
+    width: 474px;
+  }
+  better-form {
+    background: white;
+    border: 1px solid grey;
+  }
+</style>
+<body>
+  <div class="horizontal-section-container">
+    <div>
+      <h1>No redirect</h1>
+      <better-form method="get" action="http://localhost:3000/foo">
+        <input type="text" name="firstname" value="Mickey">
+        <input type="text" name="lastname" value="Mouse">
+        <br>
+        <input type="checkbox" name="donuts" checked> I like donuts<br>
+        <paper-checkbox name="food" value="pizza" checked>pizza</paper-checkbox>
+        <paper-checkbox name="food" value="cheese">cheese</paper-checkbox>
+        <br><br>
+        <input type="submit" value="Submit">
+        <input type="reset" value="Reset">
+      </better-form>
+
+      <h1>Yes redirect</h1>
+      <better-form method="get" action="http://localhost:3000/foo" allow-redirect>
+        <input type="text" name="firstname" value="Mickey">
+        <input type="text" name="lastname" value="Mouse">
+        <br>
+        <input type="checkbox" name="donuts" checked> I like donuts<br>
+        <paper-checkbox name="food" value="pizza" checked>foo</paper-checkbox>
+        <br><br>
+
+        <input type="reset" name="reset1" value="reset"></input>
+        <input type="submit" name="submit1" value="submit"></input>
+        <button name="button1" value="button">text</button>
+
+        <input type="submit" value="Submit">
+      </better-form>
+
+      <h1>no validate</h1>
+      <better-form method="get" action="/" novalidate>
+        <input name="name" label="Name" required></paper-input>
+        <paper-checkbox name="cheese" required>Cheese</paper-checkbox>
+        <br>
+        <input type="submit" value="Submit">
+      </better-form>
+
+      <h4> complicated form </h4>
+      <better-form better-form method="get" action="/">
+        <p>
+          <input name="name" label="Name" required></paper-input>
+          <paper-checkbox name="cheese" required>Cheese</paper-checkbox>
+        </p>
+
+        <input type="submit" value="Submit">
+        <!--
+        <paper-button raised
+            onclick="submitHandler(event)">Submit</paper-button>
+        <paper-button raised
+            onclick="resetHandler(event)">Reset</paper-button> -->
+      </better-form>
+
+      <h4> send a file </h4>
+      <better-form action="http://localhost:3000/foo" method="post" enctype="multipart/form-data">
+        <input type="file" name="fileToUpload" id="fileToUpload">
+        <input type="submit" value="Submit">
+      </better-form>
+      </div>
+    </div>
+  </div>
+  <br><br>
+  <div class="horizontal-section-container">
+    <div>
+      <h4>Submitted form data</h4>
+      <div class="horizontal-section wide">
+        <div id="output"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function display(event) {
+      var output = document.getElementById('output');
+      output.innerHTML = JSON.stringify(event.detail);
+    }
+
+    function submitHandler(event) {
+      debugger
+      Polymer.dom(event).localTarget.parentElement.parentElement.submit();
+    }
+    function resetHandler(event) {
+      Polymer.dom(event).localTarget.parentElement.parentElement.reset();
+    }
+  </script>
+</body>
+
+</html>

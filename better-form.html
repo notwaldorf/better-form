@@ -1,0 +1,387 @@
+<!--
+@license
+Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../iron-ajax/iron-ajax.html">
+
+<!--
+`<better-form>` is a wrapper around the HTML `<form>` element, that can
+validate and submit both custom and native HTML elements.
+
+It has two modes: if `redirect` is true, then after the form submission you
+will be redirected to the server response. Otherwise, if it is false, it will
+use an `iron-ajax` element to submit the form contents to the server.
+
+  Example:
+
+    <better-form method="get" action="/form/handler">
+      <input type="text" name="name" value="Batman">
+      <input type="checkbox" name="donuts" checked> I like donuts<br>
+      <paper-checkbox name="cheese" value="yes" checked></paper-checkbox>
+    </better-form>
+
+By default, a native `<button>` element will submit this form. However, if you
+want to submit it from a custom element's click handler, you need to explicitly
+call the form's `submit` method.
+
+  Example:
+
+    <paper-button raised onclick="submitForm()">Submit</paper-button>
+
+    function submitForm() {
+      document.getElementById('form').submit();
+    }
+
+If you are not using the `redirect` mode, then you also have the option of
+customizing the request sent to the server. To do so, you can listen to the `better-form-presubmit`
+event, and modify the form's[`iron-ajax`](https://elements.polymer-project.org/elements/iron-ajax)
+object. However, If you want to not use `iron-ajax` at all, you can cancel the
+event and do your own custom submission:
+
+  Example of modifying the request, but still using the build-in form submission:
+
+    form.addEventListener('better-form-presubmit', function() {
+      this.request.method = 'put';
+      this.request.params['extraParam'] = 'someValue';
+    });
+
+  Example of bypassing the build-in form submission:
+
+    form.addEventListener('better-form-presubmit', function(event) {
+      event.preventDefault();
+      var firebase = new Firebase(form.getAttribute('action'));
+      firebase.set(form.serialize());
+    });
+
+@group Iron Elements
+@element better-form
+@hero hero.svg
+@demo demo/index.html
+-->
+
+<dom-module id="better-form">
+  <style>
+    :host {
+      display: block;
+    }
+  </style>
+  <template>
+    <!-- This form is used to collect the elements that should be submitted -->
+    <form id="form"
+          action$="[[action]]"
+          autocomplete$="[[autocomplete]]"
+          method$="[[method]]"
+          name$="[[name]]"
+          novalidate$="[[novalidate]]"
+          target$="[[target]]">
+      <content></content>
+    </form>
+
+    <!-- This form is used for submission -->
+    <form id="helper" action$="[[action]]" method$="[[method]]" enctype$="[[enctype]]"></form>
+  </template>
+
+  <script>
+  Polymer({
+    is: 'better-form',
+
+    properties: {
+      /*
+       * Set this to true if you don't want the form to be submitted through an
+       * ajax request, and you want the page to redirect to the action URL
+       * after the form has been submitted.
+       */
+      allowRedirect: {
+        type: Boolean,
+        value: false
+      },
+
+      /*
+       * Set this to true if you want the form to perform no validation.
+       * For more information on this attribute, see https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form
+       */
+      novalidate: {
+        type: Boolean,
+        value: false
+      },
+
+      /*
+       * The form processing agent. User agent behavior for a value other than an HTTP URI is undefined.
+       * For more information on this attribute, see https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form
+       */
+      action: {
+        type: String
+      },
+
+      /*
+       * This attribute specifies which HTTP method will be used to submit the
+       * form data set. Possible (case-insensitive) values are "get" (the default) and "post".
+       * For more information on this attribute, see https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form
+       */
+      method: {
+        type: String,
+        value: 'GET'
+      },
+
+      /*
+       * This attribute specifies the content type used to submit the form to
+       * the server (when the value of method is "post"). The default value is
+       * "application/x-www-form-urlencoded". The value "multipart/form-data"
+       * should be used in combination with the INPUT element, type="file".
+       * For more information on this attribute, see https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form
+       */
+      enctype: {
+        type: String
+      }
+    },
+
+    /**
+     * Fired after the form is submitted.
+     *
+     * @event better-form-submit
+     */
+
+    /**
+     * Fired before the form is submitted.
+     *
+     * @event better-form-presubmit
+     */
+
+    /**
+     * Fired after the form is submitted and a response is received. An
+     * IronRequestElement is included as the event.detail object.
+     *
+     * @event better-form-response
+    */
+
+    /**
+     * Fired after the form is submitted and an error is received. An
+     * IronRequestElement is included as the event.detail object.
+     *
+     * @event better-form-error
+    */
+    attached: function() {
+      this.$.form.addEventListener('submit', this.submit.bind(this));
+      this.$.form.addEventListener('reset', this.reset.bind(this));
+
+      if (!this.allowRedirect) {
+        this.ajax = document.createElement('iron-ajax');
+        this.ajax.addEventListener('response', this._handleFormResponse.bind(this));
+        this.ajax.addEventListener('error', this._handleFormError.bind(this));
+      }
+    },
+
+    submit: function(event) {
+      // We are not using this form for submission, so always cancel its event.
+      if (event)
+        event.preventDefault();
+
+      // Only elements that have a `name` and are not disabled are submittable.
+      var elements = this._getSubmittableElements();
+
+      if (!this._checkFormValidity(elements)) {
+        return;
+      }
+
+      // Remove any existing children in the submission form (from a previous submit).
+      while (this.$.helper.children.length !== 0) {
+        this.$.helper.removeChild(this.$.helper.children[0]);
+      }
+
+      var json = {};
+      for (var i = 0; i < elements.length; i++) {
+        var values = this._serializeElementValues(elements[i]);
+        for (var v = 0; v < values.length; v++) {
+          // If we're submitting the form, then create a hidden element for
+          // each of the values. Otherwise, if we're using an ajax request,
+          // populate the json object.
+          if (this.allowRedirect) {
+            this.$.helper.appendChild(this._createHiddenElement(elements[i].name, values[v]));
+          }
+          else {
+            this._addSerializedElement(json, elements[i].name, values[v]);
+          }
+        }
+      }
+
+      // If we want a redirect, submit the form natively.
+      if (this.allowRedirect) {
+        this.$.helper.submit();
+        this.fire('better-form-submit');
+      } else {
+        this._makeAjaxRequest(json);
+      }
+    },
+
+    reset: function(event) {
+    },
+
+    _handleFormResponse: function (event) {
+      this.fire('better-form-response', event.detail);
+    },
+
+    _handleFormError: function (event) {
+      this.fire('better-form-error', event.detail);
+    },
+
+    _makeAjaxRequest: function(json) {
+      // Native forms can also index elements magically by their name (can't make
+      // this up if I tried) so we need to get the correct attributes, not the
+      // elements with those names.
+      this.ajax.url = this.getAttribute('action');
+      this.ajax.method = this.getAttribute('method');
+      this.ajax.contentType = this.contentType;
+      //this.ajax.withCredentials = this.withCredentials;
+      //this.ajax.headers = this.headers;
+
+      if (this.method.toUpperCase() === 'POST') {
+        this.ajax.body = json;
+      } else {
+        this.ajax.params = json;
+      }
+
+      // Allow for a presubmit hook
+      var event = this.fire('better-form-presubmit', {}, {cancelable: true});
+      if(!event.defaultPrevented) {
+        this.ajax.generateRequest();
+        this.fire('better-form-submit', json);
+      }
+    },
+
+    _getSubmittableElements: function() {
+      var nodes = Polymer.dom(this).queryDistributedElements('*');
+      var submittable = [];
+
+      for (var i = 0; i < nodes.length; i++) {
+        // This element might contain other potentially submittable elements
+        // which we need to look at. For example, this could be a <p> node
+        // containing a bunch of inputs.
+        var elements = Polymer.dom(nodes[i]).querySelectorAll('*') || [];
+
+        // We also want to check this element.
+        elements.push(nodes[i]);
+
+        // An element is submittable if it is not disabled, and if it has a
+        // 'name' attribute
+        for (var el, j = 0; el = elements[j], j < elements.length; j++) {
+          if (!el.disabled && el.name) {
+            submittable.push(el);
+          }
+        }
+      }
+
+      return submittable;
+    },
+
+    _checkFormValidity: function(elements) {
+      if (this.novalidate)
+        return true;
+
+      // Start by making the form check the native elements it knows about.
+      var valid = this.$.form.checkValidity();
+
+      // Go through all the elements, and validate the custom ones.
+      for (var el, i = 0; el = elements[i], i < elements.length; i++) {
+        // This is weird to appease the compiler. We assume the custom element
+        // has a validate() method, otherwise we can't check it.
+        var validatable = /** @type {{validate: (function() : boolean)}} */ (el);
+        if (validatable.validate) {
+          valid = !!validatable.validate() && valid;
+        }
+      }
+
+      return valid;
+    },
+
+    _serializeElementValues: function(element) {
+      // We will assume that every custom element that needs to be serialized
+      // has a `value` property, and it contains the correct value.
+      // The only weird one is an element that implements IronCheckedElementBehaviour,
+      // in which case like the native checkbox/radio button, it's only used
+      // when checked.
+
+      // For native elements, from https://www.w3.org/TR/html5/forms.html#the-form-element.
+      // Native submittable elements: button, input, keygen, object, select, textarea;
+      // 1. We will skip `keygen and `object` for this iteration, and deal with
+      // them if they're actually required.
+      // 2. <button> and <textarea> have a `value` property, so they behave like
+      //    the custom elements.
+      // 3. <select> can have multiple options selected, in which case its
+      //    `value` is incorrect, and we must use the values of each of its
+      //    `selectedOptions`
+      // 4. <input> can have a whole bunch of behaviours, so it's handled separately.
+      // 5. Buttons are hard. The button that was clicked to submit the form
+      //    is the one who's name/value gets sent to the server.
+      var tag = element.tagName.toLowerCase();
+
+      if (tag === 'button' || (tag === 'input' && (element.type === 'submit' || element.type === 'reset'))) {
+        return [];
+      }
+      if (tag === 'select') {
+        return this._serializeSelectValues(element);
+      } else if (tag === 'input') {
+        return this._serializeInputValues(element);
+      } else {
+        if (element['_hasIronCheckedElementBehavior'] && !element.checked)
+          return [];
+        return [element.value];
+      }
+    },
+
+    _serializeSelectValues: function(element) {
+      var values = []
+      // A <select multiple> has an array of options, some of which can be selected.
+      for (var i = 0; i < element.options.length; i++) {
+        if (element.options[i].selected) {
+          values.push(element.options[i].value)
+        }
+      }
+      return values;
+    },
+
+    _serializeInputValues: function(element) {
+      // Most of the inputs use their 'value' attribute, with the exception
+      // of radio buttons, checkboxes and file.
+      var type = element.type.toLowerCase();
+
+      // Don't do anything for unchecked checkboxes/radio buttons.
+      // Don't do anything for file, since that requires a different request.
+      if (((type === 'checkbox' || type === 'radio') && !element.checked) ||
+          type === 'file') {
+        return [];
+      }
+
+      return [element.value];
+    },
+
+    _createHiddenElement: function(name, value) {
+      var input = document.createElement("input");
+      input.setAttribute("type", "hidden");
+      input.setAttribute("name", name);
+      input.setAttribute("value", value);
+      return input;
+    },
+
+    _addSerializedElement: function(json, name, value) {
+      // If the name doesn't exist, add it. Otherwise, serialize it to
+      // an array,
+      if (!json[name]) {
+        json[name] = value;
+      } else {
+        if (!Array.isArray(json[name])) {
+          json[name] = [json[name]];
+        }
+        json[name].push(value);
+      }
+    }
+  });
+  </script>
+
+</dom-module>
