@@ -152,6 +152,10 @@ event and do your own custom submission:
       }
     },
 
+    validate: function() {
+      return this._checkFormValidity(this._getSubmittableElements());
+    },
+
     submit: function(event) {
       // We are not using this form for submission, so always cancel its event.
       if (event)
@@ -255,7 +259,7 @@ event and do your own custom submission:
     },
 
     _checkFormValidity: function(elements) {
-      if (this._form.novalidate)
+      if (this._form.getAttribute('novalidate') === '')
         return true;
 
       // Start by making the form check the native elements it knows about.
