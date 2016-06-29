@@ -337,7 +337,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       form.addEventListener('form-wrapper-response', function(event) {
         responses++;
       });
-
+      debugger
+      form.validate();
       expect(form.validate()).to.be.equal(false);
 
       form.submit();

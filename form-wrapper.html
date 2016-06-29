@@ -153,7 +153,7 @@ event and do your own custom submission:
     },
 
     validate: function() {
-      return this._checkFormValidity(this._getSubmittableElements());
+      return this._checkFormValidity(this._getValidatableElements());
     },
 
     submit: function(event) {
@@ -164,7 +164,7 @@ event and do your own custom submission:
       // Only elements that have a `name` and are not disabled are submittable.
       var elements = this._getSubmittableElements();
 
-      if (!this._checkFormValidity(elements)) {
+      if (!this.validate()) {
         return;
       }
 
@@ -233,6 +233,30 @@ event and do your own custom submission:
       }
     },
 
+    _getValidatableElements: function() {
+      var nodes = Polymer.dom(this).queryDistributedElements('*');
+      var validatable = [];
+
+      for (var i = 0; i < nodes.length; i++) {
+        // This element might contain other potentially validatable elements
+        // which we need to look at. For example, this could be a <p> node
+        // containing a bunch of inputs.
+        var elements = Polymer.dom(nodes[i]).querySelectorAll('*') || [];
+
+        // We also want to check this element.
+        elements.push(nodes[i]);
+
+        // An element is validatable if it is not disabled
+        for (var el, j = 0; el = elements[j], j < elements.length; j++) {
+          if (!el.disabled) {
+            validatable.push(el);
+          }
+        }
+      }
+
+      return validatable;
+    },
+
     _getSubmittableElements: function() {
       var nodes = Polymer.dom(this).queryDistributedElements('*');
       var submittable = [];
@@ -247,7 +271,7 @@ event and do your own custom submission:
         elements.push(nodes[i]);
 
         // An element is submittable if it is not disabled, and if it has a
-        // 'name' attribute
+        // 'name' attribute.
         for (var el, j = 0; el = elements[j], j < elements.length; j++) {
           if (!el.disabled && el.name) {
             submittable.push(el);
