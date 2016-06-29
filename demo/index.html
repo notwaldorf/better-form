@@ -50,6 +50,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           <br><br>
           <input type="submit" value="Submit">
           <input type="reset" value="Reset">
+
+          <paper-button raised
+              onclick="submitHandler(event)">Submit</paper-button>
+          <paper-button raised
+              onclick="resetHandler(event)">Reset</paper-button>
         </form>
       </form-wrapper>
 
@@ -68,6 +73,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           <button name="button1" value="button">text</button>
 
           <input type="submit" value="Submit">
+
+          <paper-button raised
+              onclick="submitHandler(event)">Submit</paper-button>
+          <paper-button raised
+              onclick="resetHandler(event)">Reset</paper-button>
         </form>
       </form-wrapper>
 
@@ -78,6 +88,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           <paper-checkbox name="cheese" required>Cheese</paper-checkbox>
           <br>
           <input type="submit" value="Submit">
+
+          <paper-button raised
+              onclick="submitHandler(event)">Submit</paper-button>
+          <paper-button raised
+              onclick="resetHandler(event)">Reset</paper-button>
         </form>
       </form-wrapper>
 
@@ -90,11 +105,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           </p>
 
           <input type="submit" value="Submit">
-          <!--
+
           <paper-button raised
               onclick="submitHandler(event)">Submit</paper-button>
           <paper-button raised
-              onclick="resetHandler(event)">Reset</paper-button> -->
+              onclick="resetHandler(event)">Reset</paper-button>
         </form>
       </form-wrapper>
 
@@ -103,6 +118,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         <form action="http://localhost:3000/foo" method="post" enctype="multipart/form-data">
           <input type="file" name="fileToUpload" id="fileToUpload">
           <input type="submit" value="Submit">
+
+          <paper-button raised
+              onclick="submitHandler(event)">Submit</paper-button>
+          <paper-button raised
+              onclick="resetHandler(event)">Reset</paper-button>
         </form>
       </form-wrapper>
       </div>
@@ -125,7 +145,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     }
 
     function submitHandler(event) {
-      debugger
+      // lol, get to the parent form-wrapper.
       Polymer.dom(event).localTarget.parentElement.parentElement.submit();
     }
     function resetHandler(event) {
