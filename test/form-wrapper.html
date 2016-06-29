@@ -97,6 +97,19 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     </template>
   </test-fixture>
 
+  <test-fixture id="submission">
+    <template>
+      <form-wrapper>
+        <form action="/get" method="get">
+          <input type="checkbox" name="check1" checked>
+          <input type="submit">
+          <input type="button">
+          <paper-button></paper-button>
+        </form>
+      </form-wrapper>
+    </template>
+  </test-fixture>
+
   <script>
   suite('serialization', function() {
     var f;
@@ -123,7 +136,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
     test('serializes native checkboxes', function(done) {
       var form = f.querySelector('#native-checkboxes');
-      Polymer.dom.flush()
+      Polymer.dom.flush();
 
       form.addEventListener('form-wrapper-response', function(event) {
         expect(event.detail.url).to.equal('/get?check1=on&check1=2&check2=3');
@@ -137,7 +150,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
     test('serializes native radio buttons', function(done) {
       var form = f.querySelector('#native-radios');
-      Polymer.dom.flush()
+      Polymer.dom.flush();
 
       form.addEventListener('form-wrapper-response', function(event) {
         expect(event.detail.url).to.equal('/get?radio1=on&radio2=3');
@@ -151,7 +164,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
     test('serializes native buttons', function(done) {
       var form = f.querySelector('#native-buttons');
-      Polymer.dom.flush()
+      Polymer.dom.flush();
 
       form.addEventListener('form-wrapper-response', function(event) {
         expect(event.detail.url).to.equal('/get');
@@ -165,7 +178,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
     test('serializes native selects', function(done) {
       var form = f.querySelector('#native-selects');
-      Polymer.dom.flush()
+      Polymer.dom.flush();
 
       form.addEventListener('form-wrapper-response', function(event) {
         expect(event.detail.url).to.equal('/get?select1=1&select1=2&select2=1');
@@ -179,7 +192,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
     test('serializes native inputs', function(done) {
       var form = f.querySelector('#native-inputs');
-      Polymer.dom.flush()
+      Polymer.dom.flush();
 
       form.addEventListener('form-wrapper-response', function(event) {
         // TODO(noms): figure out if we should submit empty text.
@@ -194,7 +207,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
     test('serializes custom checkboxes', function(done) {
       var form = f.querySelector('#custom-checkboxes');
-      Polymer.dom.flush()
+      Polymer.dom.flush();
 
       form.addEventListener('form-wrapper-response', function(event) {
         expect(event.detail.url).to.equal('/get?check1=on&check1=2&check2=3');
@@ -208,7 +221,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
     test('serializes custom inputs', function(done) {
       var form = f.querySelector('#custom-inputs');
-      Polymer.dom.flush()
+      Polymer.dom.flush();
 
       form.addEventListener('form-wrapper-response', function(event) {
         // TODO(noms): figure out if we should submit empty text.
@@ -220,7 +233,104 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       form.submit();
       server.respond();
     });
+  });
 
+
+  suite('validation', function() {
+    test('todo', function() {
+    });
+  });
+
+  suite('submission', function() {
+    var form;
+    var server;
+
+    setup(function() {
+      form = fixture('submission');
+
+      server = sinon.fakeServer.create();
+      server.respondWith(
+        'GET',
+        /\/get.*/,
+        [
+          200,
+          '{"Content-Type":"application/json"}',
+          '{"success":true}'
+        ]
+      );
+    });
+
+    teardown(function() {
+      server.restore();
+    });
+
+    test('calling submit() on the wrapper submits the form', function(done) {
+      Polymer.dom.flush();
+
+      form.addEventListener('form-wrapper-response', function(event) {
+        expect(event.detail.response.success).to.be.equal(true);
+        done();
+      });
+
+      form.submit();
+      server.respond();
+    });
+
+    test('pressing an <input type=submit> submits the form', function(done) {
+      Polymer.dom.flush();
+
+      form.addEventListener('form-wrapper-response', function(event) {
+        expect(event.detail.response.success).to.be.equal(true);
+        done();
+      });
+
+      form._form.querySelector('input[type=submit]').click();
+      server.respond();
+    });
+
+    test('pressing an <input type=button> with an event handler submits the form', function(done) {
+      Polymer.dom.flush();
+
+      form.addEventListener('form-wrapper-response', function(event) {
+        expect(event.detail.response.success).to.be.equal(true);
+        done();
+      });
+
+      var button = form._form.querySelector('input[type=button]');
+      button.addEventListener('click', function() {
+        form.submit();
+      });
+      button.click();
+
+      server.respond();
+    });
+
+    test('pressing a paper-button with an event handler submits the form', function(done) {
+      Polymer.dom.flush();
+
+      form.addEventListener('form-wrapper-response', function(event) {
+        expect(event.detail.response.success).to.be.equal(true);
+        done();
+      });
+
+      var button = form._form.querySelector('paper-button');
+      button.addEventListener('click', function() {
+        form.submit();
+      });
+      button.click();
+
+      server.respond();
+    });
+  });
+
+  suite('resetting', function() {
+    test('todo', function() {
+    });
+  });
+
+  suite('redirecting', function() {
+    test('todo', function() {
+    });
   });
 
   </script>
