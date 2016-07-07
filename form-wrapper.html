@@ -62,6 +62,16 @@ event and do your own custom submission:
       firebase.set(form.serialize());
     });
 
+Note that if you're dynamically creating this element, it's mandatory that you
+first create the contained `<form>` element and all its children, and only then
+attach it to the `<form-wrapper>`:
+
+  var wrapper = document.createElement('form-wrapper');
+  var form = document.createElement('form');
+  var input = document.createElement('input');
+  form.appendChild(input);
+  wrapper.appendChild(form);
+
 @element form-wrapper
 @hero hero.svg
 @demo demo/index.html
@@ -216,6 +226,19 @@ event and do your own custom submission:
     },
 
     reset: function(event) {
+      // We are not using this form for submission, so always cancel its event.
+      if (event)
+        event.preventDefault();
+
+      // // Remove all the existing form children, and re-add the default ones.
+      // var nodes = Polymer.dom(this._form).querySelectorAll('*');
+      // debugger
+      // for (var i = 0; i < nodes.length; i++) {
+      //   this._form.removeChild(nodes);
+      // }
+      // // for (var i = 0; i < this._initialElements.length; i++) {
+      // //   this._form.appendChild(this._initialElements[i]);
+      // // }
     },
 
     _handleFormResponse: function (event) {
